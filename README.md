@@ -4,9 +4,9 @@ WinSentinel is a Windows security monitoring concept that presents system signal
 
 ## Current milestone
 
-Milestone 1 is a browser prototype. It contains a Three.js tower scene, a verdict priority model, seven selectable demo scenarios, a signal feed, and evidence confidence labels.
+Milestone 1 is a browser prototype. It contains a Three.js tower scene with state-specific motion, a verdict priority model, seven selectable demo scenarios, a signal feed, evidence confidence labels, and state-specific security suggestions.
 
-Every signal in this prototype is simulated. It does not read Windows event logs, inspect processes or files, access a camera or microphone, detect real attacks, or send alerts. The confidence label describes the example signal only; it is not an assessment of your computer.
+Every signal in this prototype is simulated. It does not read Windows event logs, inspect processes or files, access a camera or microphone, detect real attacks, or send alerts. The remote sign-in examples use TEST-NET addresses reserved for documentation under [RFC 5737](https://www.rfc-editor.org/rfc/rfc5737.html); they are not observed IP addresses and cannot identify an attacker or VPN endpoint. The confidence label describes the example signal only; it is not an assessment of your computer.
 
 ## Run locally
 
@@ -18,6 +18,12 @@ Install Node.js 20.19+ or 22.12+, then run these commands from the project folde
 Open the local address printed by Vite. Use the scenario list to preview each verdict, choose **Next signal** to cycle through them, or choose **Reset** to return to Safe.
 
 To create a static site bundle, run <code>npm run build</code>. The output is written to <code>dist/</code>.
+
+## Publish to GitHub Pages
+
+The 3D scene is drawn in a WebGL canvas; it does not use image files. The Pages deployment workflow builds the app into static files before publishing them.
+
+To publish, set the repository's Pages source to **GitHub Actions** under **Settings → Pages → Build and deployment**. A push to <code>main</code> then builds and deploys <code>dist/</code> using <code>.github/workflows/deploy-pages.yml</code>. The workflow can also be started manually from the Actions tab.
 
 ## Demo verdicts
 

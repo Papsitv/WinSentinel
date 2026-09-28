@@ -17,6 +17,10 @@ const elements = {
   sceneViewport: document.querySelector("#sceneViewport"),
   sceneCanvas: document.querySelector("#sentinelScene"),
   sceneFallback: document.querySelector("#sceneFallback"),
+  sceneModeLabel: document.querySelector("#sceneModeLabel"),
+  sceneDirectionLabel: document.querySelector("#sceneDirectionLabel"),
+  guidanceState: document.querySelector("#guidanceState"),
+  guidanceList: document.querySelector("#guidanceList"),
 };
 
 let activeScenario = "safe";
@@ -89,29 +93,59 @@ function renderSignals(signals) {
     marker.setAttribute("aria-hidden", "true");
 
     const copy = document.createElement("div");
-    copy.className = "event-copy";
+    copy.className = "event-main";
+    const titleRow = document.createElement("div");
+    titleRow.className = "event-title-row";
     const title = document.createElement("strong");
     title.textContent = signal.title;
+    const confidenceBadge = document.createElement("span");
+    confidenceBadge.className = "confidence-badge event-confidence";
+    confidenceBadge.dataset.confidence = signal.confidence;
+    confidenceBadge.textContent = confidence.label.toUpperCase();
+    titleRow.append(title, confidenceBadge);
     const detail = document.createElement("p");
     detail.textContent = signal.detail;
-    copy.append(title, detail);
+    detail.className = "event-detail";
+    copy.append(titleRow, detail);
 
     const meta = document.createElement("div");
     meta.className = "event-meta";
     const source = document.createElement("span");
     source.className = "event-source";
     source.textContent = signal.source;
-    const confidenceBadge = document.createElement("span");
-    confidenceBadge.className = "confidence-badge";
-    confidenceBadge.dataset.confidence = signal.confidence;
-    confidenceBadge.textContent = confidence.label.toUpperCase();
-    meta.append(source, confidenceBadge);
-
     const time = document.createElement("span");
     time.className = "event-time";
     time.textContent = "NOW";
-    card.append(marker, copy, meta, time);
+    meta.append(source, time);
+    copy.append(meta);
+
+    if (signal.networkFootprint) {
+      const footprint = document.createElement("div");
+      footprint.className = "event-footprint";
+      const footprintLabel = document.createElement("span");
+      footprintLabel.className = "footprint-label";
+      footprintLabel.textContent = signal.networkFootprint.label;
+      const address = document.createElement("code");
+      address.textContent = signal.networkFootprint.address;
+      const note = document.createElement("span");
+      note.className = "footprint-note";
+      note.textContent = signal.networkFootprint.note;
+      footprint.append(footprintLabel, address, note);
+      copy.append(footprint);
+    }
+
+    card.append(marker, copy);
     elements.eventFeed.append(card);
+  });
+}
+
+function renderGuidance(status) {
+  elements.guidanceState.textContent = status.label.toUpperCase();
+  elements.guidanceList.replaceChildren();
+  status.recommendations.forEach((recommendation) => {
+    const item = document.createElement("li");
+    item.textContent = recommendation;
+    elements.guidanceList.append(item);
   });
 }
 
@@ -142,6 +176,9 @@ function selectScenario(statusId) {
     button.setAttribute("aria-pressed", String(id === statusId));
   });
   elements.sceneViewport.dataset.status = status.id;
+  elements.sceneModeLabel.textContent = status.sceneLabel;
+  elements.sceneDirectionLabel.textContent = status.sceneDirection;
+  renderGuidance(status);
   renderSignals(verdict.signals);
   scene.setVerdict(status);
 }

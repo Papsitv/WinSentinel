@@ -22,6 +22,13 @@ export const STATUS = [
     priority: 0,
     color: "#76e4c4",
     icon: "✓",
+    sceneLabel: "BASELINE",
+    sceneDirection: "No active signal",
+    recommendations: [
+      "Keep Windows, your browser, and router firmware updated.",
+      "Keep Defender and Windows Firewall on; use WPA2/WPA3 Wi-Fi encryption.",
+      "Use MFA on important accounts and keep a separate backup.",
+    ],
   },
   {
     id: "at-risk",
@@ -31,6 +38,13 @@ export const STATUS = [
     priority: 1,
     color: "#edc875",
     icon: "!",
+    sceneLabel: "CHANGE DETECTED",
+    sceneDirection: "Local system change",
+    recommendations: [
+      "Check the service name, publisher, path, and install time.",
+      "Run a Windows Security scan if you do not recognize it.",
+      "Avoid deleting a service until you identify what uses it.",
+    ],
   },
   {
     id: "being-watched",
@@ -40,6 +54,13 @@ export const STATUS = [
     priority: 2,
     color: "#a7a5ff",
     icon: "◉",
+    sceneLabel: "REMOTE OBSERVER",
+    sceneDirection: "Possible remote access",
+    recommendations: [
+      "Review installed remote-support and unattended-access tools.",
+      "Turn off Remote Desktop if you do not use it.",
+      "Review which apps can use your camera and microphone.",
+    ],
   },
   {
     id: "being-attacked",
@@ -49,6 +70,13 @@ export const STATUS = [
     priority: 3,
     color: "#ff9a70",
     icon: "↗",
+    sceneLabel: "SIGN-IN BURST",
+    sceneDirection: "Inbound attempts",
+    recommendations: [
+      "Use MFA or Windows Hello on important accounts.",
+      "Turn off Remote Desktop if unused; keep the firewall on.",
+      "Review sign-in times and account names before responding.",
+    ],
   },
   {
     id: "being-snooped",
@@ -58,6 +86,13 @@ export const STATUS = [
     priority: 4,
     color: "#7ac9ff",
     icon: "⌕",
+    sceneLabel: "LOCAL SCAN",
+    sceneDirection: "Canary file touched",
+    recommendations: [
+      "Check the process name, file path, and event time.",
+      "Run a full scan if the process is unfamiliar.",
+      "Enable Controlled Folder Access for important folders.",
+    ],
   },
   {
     id: "file-being-copied",
@@ -67,6 +102,13 @@ export const STATUS = [
     priority: 5,
     color: "#d69bff",
     icon: "⇢",
+    sceneLabel: "OUTBOUND COPY",
+    sceneDirection: "Local → external",
+    recommendations: [
+      "If unexpected, review the process and destination drive/share.",
+      "Disconnect an unknown removable drive while you investigate.",
+      "Review cloud sharing and enable Controlled Folder Access.",
+    ],
   },
   {
     id: "someone-inside",
@@ -76,6 +118,13 @@ export const STATUS = [
     priority: 6,
     color: "#ff7286",
     icon: "⌑",
+    sceneLabel: "REMOTE SESSION",
+    sceneDirection: "Active sign-in",
+    recommendations: [
+      "Verify the account, sign-in time, and whether the session is yours.",
+      "If unexpected, end the session and disable remote access temporarily.",
+      "Change affected passwords from a trusted device and review MFA.",
+    ],
   },
 ];
 
@@ -111,6 +160,11 @@ export const SCENARIOS = {
       source: "SECURITY LOG · 4625",
       confidence: "confirmed",
       statusId: "being-attacked",
+      networkFootprint: {
+        address: "198.51.100.24",
+        label: "SIMULATED SOURCE IP",
+        note: "TEST-NET example · VPN/proxy origin unknown",
+      },
     },
     {
       id: "new-service-attack",
@@ -149,6 +203,11 @@ export const SCENARIOS = {
       source: "SECURITY LOG · 4624",
       confidence: "confirmed",
       statusId: "someone-inside",
+      networkFootprint: {
+        address: "203.0.113.42",
+        label: "SIMULATED REMOTE PEER",
+        note: "TEST-NET example · VPN/proxy origin unknown",
+      },
     },
   ],
 };

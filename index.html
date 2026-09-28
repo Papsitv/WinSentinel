@@ -101,12 +101,12 @@
                   <p class="eyebrow">THIRD-PERSON VIEW</p>
                   <h2 id="sceneHeading">Your PC, in context</h2>
                 </div>
-                <span class="scene-label"><span class="scene-label-dot"></span> SIMULATED TRAFFIC</span>
+                <span class="scene-label"><span class="scene-label-dot"></span><span id="sceneModeLabel">BASELINE</span></span>
               </div>
               <div class="scene-viewport" id="sceneViewport">
                 <canvas id="sentinelScene" aria-label="Animated 3D illustration of a protected PC and simulated network connections"></canvas>
                 <div class="scene-coordinate scene-coordinate-top">DEVICE NODE <span>LOCAL-01</span></div>
-                <div class="scene-coordinate scene-coordinate-bottom">INBOUND CONNECTIONS <span>SIMULATED</span></div>
+                <div class="scene-coordinate scene-coordinate-bottom">TRAFFIC PROFILE <span id="sceneDirectionLabel">No active signal</span></div>
                 <div class="scene-legend" aria-hidden="true">
                   <span class="scene-legend-line"></span> network path
                   <span class="scene-legend-node"></span> external node
@@ -128,19 +128,16 @@
               <div class="event-feed" id="eventFeed" aria-live="polite"></div>
             </section>
 
-            <section class="panel confidence-panel" aria-labelledby="confidenceHeading">
+            <section class="panel guidance-panel" aria-labelledby="guidanceHeading">
               <div class="panel-heading compact-heading">
                 <div>
-                  <p class="eyebrow">READING THE SIGNALS</p>
-                  <h2 id="confidenceHeading">Confidence key</h2>
+                  <p class="eyebrow">PRACTICAL NEXT STEPS</p>
+                  <h2 id="guidanceHeading">Security suggestions</h2>
                 </div>
+                <span class="guidance-state" id="guidanceState">SAFE BASELINE</span>
               </div>
-              <div class="confidence-key">
-                <div><span class="confidence-badge" data-confidence="confirmed">CONFIRMED</span><p>Directly observed event</p></div>
-                <div><span class="confidence-badge" data-confidence="inferred">INFERRED</span><p>Several cues form a pattern</p></div>
-                <div><span class="confidence-badge" data-confidence="suspected">SUSPECTED</span><p>Heuristic; needs corroboration</p></div>
-              </div>
-              <p class="confidence-note">These labels describe example signals only. Nothing is being monitored.</p>
+              <ol class="guidance-list" id="guidanceList" aria-live="polite"></ol>
+              <p class="guidance-note">General guidance for the selected demo state; no PC or network is being monitored.</p>
             </section>
           </div>
         </main>
