@@ -43,7 +43,7 @@ When several signals are active, the verdict model selects the highest-priority 
 
 1. Review the 3D presentation and demo wording.
 2. Define documented event schemas and add read-only Windows signal collectors. Local sign-in and active Remote Desktop session collectors are implemented, with a local-only snapshot import for the development dashboard.
-3. Add file, removable-drive, process, and network observations with explicit confidence and known limitations.
+3. Add file, removable-drive, process, and network observations with explicit confidence and known limitations. The local snapshot now includes a point-in-time list of established TCP connections; it does not classify peers as malicious.
 4. Consider a Windows desktop shell, service hardening, and optional phone alerts after the sensors and verdict rules are validated.
 
 ## Milestone 2: local Windows observations
@@ -67,7 +67,7 @@ To create one combined snapshot for the local dashboard, run this in PowerShell 
 
 Open the local Vite address, choose **Load local snapshot**, and select `winsentinel-snapshot.json`. The snapshot is created only because you redirected the script's console output to a file. The dashboard accepts it only on `localhost` or `127.0.0.1`, keeps the imported data in the current browser tab's memory, and does not upload or persist it. **Clear local data** removes the imported records from the page; delete the JSON file yourself when you no longer need it. The file is ignored by Git. Do not upload or commit it.
 
-The local observations panel is separate from the simulated verdict and demo controls. It lists network/remote sign-in events (logon types 3, 10, and 12) and RDP sessions reported by Windows without treating an ordinary logon as an attack. Any shown source address is only what Windows or the RDP client reported; it cannot identify an attacker or reveal an origin behind a VPN, proxy, NAT, or relay. GitHub Pages continues to show simulated data and does not accept local snapshots.
+The local observations panel is separate from the simulated verdict and demo controls. It lists network/remote sign-in events (logon types 3, 10, and 12), RDP sessions, and established TCP connections reported by Windows. Ordinary logons and network connections are not treated as attacks. A TCP peer address does not identify an attacker or reveal an origin behind a VPN, proxy, NAT, or relay. The connection list is a point-in-time view, not a traffic history. GitHub Pages continues to show simulated data and does not accept local snapshots.
 
 See [docs/local-snapshot.md](docs/local-snapshot.md) for the snapshot schema, import boundary, and field limitations.
 

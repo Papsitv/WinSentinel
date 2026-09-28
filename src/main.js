@@ -33,10 +33,13 @@ const elements = {
   localSignInValue: document.querySelector("#localSignInValue"),
   localFailureValue: document.querySelector("#localFailureValue"),
   localSessionValue: document.querySelector("#localSessionValue"),
+  localConnectionValue: document.querySelector("#localConnectionValue"),
   localSignInCount: document.querySelector("#localSignInCount"),
   localSessionCount: document.querySelector("#localSessionCount"),
+  localConnectionCount: document.querySelector("#localConnectionCount"),
   localSignInList: document.querySelector("#localSignInList"),
   localSessionList: document.querySelector("#localSessionList"),
+  localConnectionList: document.querySelector("#localConnectionList"),
   localImportedAt: document.querySelector("#localImportedAt"),
 };
 
@@ -258,6 +261,12 @@ function createLocalEvidenceRow({ titleText, detailText, timeText, addressLabel,
   return row;
 }
 
+function formatNetworkEndpoint(address, port) {
+  const host = String(address || "unknown");
+  const displayHost = host.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
+  return `${displayHost}:${Number.isInteger(port) ? port : "?"}`;
+}
+
 function validateSnapshot(snapshot) {
   if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
     throw new Error("The file must contain a WinSentinel snapshot object.");
@@ -271,6 +280,10 @@ function validateSnapshot(snapshot) {
   if (!Array.isArray(snapshot.signInEvents) || !Array.isArray(snapshot.remoteSessions)) {
     throw new Error("The snapshot is missing its sign-in event or RDP session array.");
   }
+  const networkConnections = snapshot.networkConnections ?? [];
+  if (!Array.isArray(networkConnections)) {
+    throw new Error("The snapshot contains an invalid TCP connection list.");
+  }
   if (snapshot.signInEvents.some((event) =>
     !event || typeof event !== "object" || event.schemaVersion !== "1.0" ||
     ![4624, 4625].includes(event.eventId) || !["success", "failure"].includes(event.result)
@@ -283,6 +296,15 @@ function validateSnapshot(snapshot) {
   )) {
     throw new Error("The snapshot contains an invalid RDP session record.");
   }
+  if (networkConnections.some((connection) =>
+    !connection || typeof connection !== "object" || connection.schemaVersion !== "1.0" ||
+    connection.protocol !== "TCP" || connection.state !== "Established" ||
+    typeof connection.remoteAddress !== "string" ||
+    !Number.isInteger(connection.localPort) || !Number.isInteger(connection.remotePort) ||
+    !Number.isInteger(connection.processId)
+  )) {
+    throw new Error("The snapshot contains an invalid established TCP connection record.");
+  }
   return snapshot;
 }
 
@@ -291,15 +313,19 @@ function renderLocalSnapshot(snapshot) {
     .filter((event) => REMOTE_LOGON_TYPES.has(String(event.logonType)))
     .sort((left, right) => new Date(right.timeUtc).getTime() - new Date(left.timeUtc).getTime());
   const failedEvents = remoteEvents.filter((event) => event.result === "failure");
+  const networkConnections = snapshot.networkConnections ?? [];
 
   elements.localWindowValue.textContent = `Last ${snapshot.sinceHours} hours`;
   elements.localSignInValue.textContent = String(remoteEvents.length);
   elements.localFailureValue.textContent = String(failedEvents.length);
   elements.localSessionValue.textContent = String(snapshot.remoteSessions.length);
+  elements.localConnectionValue.textContent = String(networkConnections.length);
   elements.localSignInCount.textContent = `${remoteEvents.length} ${remoteEvents.length === 1 ? "EVENT" : "EVENTS"}`;
   elements.localSessionCount.textContent = `${snapshot.remoteSessions.length} ${snapshot.remoteSessions.length === 1 ? "SESSION" : "SESSIONS"}`;
+  elements.localConnectionCount.textContent = `${networkConnections.length} ${networkConnections.length === 1 ? "CONNECTION" : "CONNECTIONS"}`;
   elements.localSignInList.replaceChildren();
   elements.localSessionList.replaceChildren();
+  elements.localConnectionList.replaceChildren();
 
   if (remoteEvents.length === 0) {
     const empty = document.createElement("p");
@@ -352,6 +378,37 @@ function renderLocalSnapshot(snapshot) {
     });
   }
 
+  if (networkConnections.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "local-data-empty";
+    empty.textContent = "No established TCP connections were returned by this query.";
+    elements.localConnectionList.append(empty);
+  } else {
+    networkConnections.slice(0, 100).forEach((connection) => {
+      const process = connection.processName || "Process name unavailable";
+      const localEndpoint = formatNetworkEndpoint(connection.localAddress, connection.localPort);
+      const remoteEndpoint = formatNetworkEndpoint(connection.remoteAddress, connection.remotePort);
+      elements.localConnectionList.append(createLocalEvidenceRow({
+        titleText: process,
+        detailText: `PID ${connection.processId} · ${connection.state} · Local ${localEndpoint}`,
+        addressLabel: "Remote peer reported by Windows:",
+        addressText: remoteEndpoint,
+      }));
+    });
+    if (networkConnections.length > 100) {
+      const more = document.createElement("p");
+      more.className = "local-data-note";
+      more.textContent = `Showing 100 of ${networkConnections.length} returned connections.`;
+      elements.localConnectionList.append(more);
+    }
+    if (networkConnections.length >= 500) {
+      const capped = document.createElement("p");
+      capped.className = "local-data-note";
+      capped.textContent = "The collector's default limit is 500 connections; additional connections may exist.";
+      elements.localConnectionList.append(capped);
+    }
+  }
+
   elements.localImportedAt.textContent =
     `Snapshot collected ${formatSnapshotTime(snapshot.collectedAtUtc)} · ${snapshot.signInEvents.length} total sign-in events queried.`;
   elements.localDataEmpty.hidden = true;
@@ -366,12 +423,15 @@ function clearLocalSnapshot() {
   elements.localSnapshotInput.value = "";
   elements.localSignInList.replaceChildren();
   elements.localSessionList.replaceChildren();
+  elements.localConnectionList.replaceChildren();
   elements.localWindowValue.textContent = "—";
   elements.localSignInValue.textContent = "—";
   elements.localFailureValue.textContent = "—";
   elements.localSessionValue.textContent = "—";
+  elements.localConnectionValue.textContent = "—";
   elements.localSignInCount.textContent = "0 EVENTS";
   elements.localSessionCount.textContent = "0 SESSIONS";
+  elements.localConnectionCount.textContent = "0 CONNECTIONS";
   elements.localImportedAt.textContent = "";
   elements.localDataResults.hidden = true;
   elements.localDataEmpty.hidden = false;

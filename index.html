@@ -94,6 +94,7 @@
                 <div class="local-summary-item"><span>NETWORK / REMOTE SIGN-INS</span><strong id="localSignInValue">—</strong></div>
                 <div class="local-summary-item"><span>FAILED SIGN-INS</span><strong id="localFailureValue">—</strong></div>
                 <div class="local-summary-item"><span>RDP SESSIONS RETURNED</span><strong id="localSessionValue">—</strong></div>
+                <div class="local-summary-item"><span>ESTABLISHED TCP CONNECTIONS</span><strong id="localConnectionValue">—</strong></div>
               </div>
 
               <div class="local-evidence-columns">
@@ -112,7 +113,14 @@
                   <div class="local-evidence-list" id="localSessionList" aria-live="polite"></div>
                 </section>
               </div>
-              <p class="local-data-note">These are local observations for the selected collection window. An empty result means no matching records were returned; it does not prove that the device is threat-free. Addresses are only values reported by Windows or the RDP client and cannot identify an attacker or reveal an origin behind VPN, proxy, NAT, or gateway routing.</p>
+              <section class="local-evidence-group" aria-labelledby="localConnectionHeading">
+                <div class="local-evidence-heading">
+                  <h3 id="localConnectionHeading">Established TCP connections at collection time</h3>
+                  <span id="localConnectionCount">0 CONNECTIONS</span>
+                </div>
+                <div class="local-evidence-list" id="localConnectionList" aria-live="polite"></div>
+              </section>
+              <p class="local-data-note">These are local observations for the selected collection window and snapshot time. An empty result does not prove the device is threat-free. A TCP peer address is only what Windows reported; it does not identify an attacker or show the origin behind VPN, proxy, NAT, or relay routing. Established connections can be ordinary application traffic.</p>
               <p class="local-data-time" id="localImportedAt"></p>
             </div>
 
