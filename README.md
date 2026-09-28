@@ -42,9 +42,23 @@ When several signals are active, the verdict model selects the highest-priority 
 ## Planned work
 
 1. Review the 3D presentation and demo wording.
-2. Define a documented event schema and add read-only Windows signal collectors, starting with sign-in events and active remote sessions.
+2. Define documented event schemas and add read-only Windows signal collectors. Local sign-in and active Remote Desktop session collectors are implemented; connecting them to the dashboard remains planned.
 3. Add file, removable-drive, process, and network observations with explicit confidence and known limitations.
 4. Consider a Windows desktop shell, service hardening, and optional phone alerts after the sensors and verdict rules are validated.
+
+## Milestone 2: local Windows collectors (in progress)
+
+The read-only collector in `scripts/Get-WinSentinelSignInEvents.ps1` queries local Windows Security events 4624 and 4625 and prints normalized JSON to the PowerShell console. See [`docs/event-schema.md`](docs/event-schema.md) for fields and limitations. It does not change Windows settings, write a file, or send data over the network. Access depends on local Security log permissions and audit policy.
+
+From PowerShell in the project folder, run:
+
+    .\scripts\Get-WinSentinelSignInEvents.ps1 -SinceHours 24 -MaxEvents 200 -RemoteOnly
+
+For current RDP sessions, run:
+
+    .\scripts\Get-WinSentinelRemoteSessions.ps1
+
+See [docs/active-sessions.md](docs/active-sessions.md). Its client-reported address may differ from the network peer. The sign-in event address, when present, is only the peer value Windows recorded. It cannot identify an attacker or reveal an origin behind a VPN, proxy, NAT, or relay. The GitHub Pages dashboard remains a simulated demo; a later local integration is needed before these records can appear in it.
 
 ## Technology
 
