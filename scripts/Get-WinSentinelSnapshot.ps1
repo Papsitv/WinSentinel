@@ -20,6 +20,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 $powerShellPath = Join-Path $PSHOME 'pwsh.exe'
 $signInCollector = Join-Path $PSScriptRoot 'Get-WinSentinelSignInEvents.ps1'
 $sessionCollector = Join-Path $PSScriptRoot 'Get-WinSentinelRemoteSessions.ps1'
+$networkCollector = Join-Path $PSScriptRoot 'Get-WinSentinelNetworkConnections.ps1'
 
 function Invoke-CollectorJson {
     param(
@@ -82,12 +83,16 @@ $signInEvents = Convert-CollectorJsonToArray -Json $signInJson -CollectorName 'G
 $sessionJson = Invoke-CollectorJson -ScriptPath $sessionCollector -Arguments @()
 $remoteSessions = Convert-CollectorJsonToArray -Json $sessionJson -CollectorName 'Get-WinSentinelRemoteSessions.ps1'
 
+$networkJson = Invoke-CollectorJson -ScriptPath $networkCollector -Arguments @()
+$networkConnections = Convert-CollectorJsonToArray -Json $networkJson -CollectorName 'Get-WinSentinelNetworkConnections.ps1'
+
 $snapshot = [pscustomobject][ordered]@{
     schemaVersion = '1.0'
     collectedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
     sinceHours = $SinceHours
     signInEvents = @($signInEvents)
     remoteSessions = @($remoteSessions)
+    networkConnections = @($networkConnections)
 }
 
 $snapshotJson = ConvertTo-Json -InputObject $snapshot -Depth 8
