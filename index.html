@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1017" />
+    <meta
+      name="description"
+      content="WinSentinel visual prototype with simulated Windows security signals."
+    />
+    <title>WinSentinel — Security overview</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="rail" aria-label="Application">
+        <div class="rail-mark" aria-hidden="true">W</div>
+        <div class="rail-rule"></div>
+        <div class="rail-active" aria-label="Overview" title="Overview">
+          <span aria-hidden="true">◈</span>
+        </div>
+        <div class="rail-spacer"></div>
+        <div class="rail-build" title="Milestone 1">M1</div>
+      </aside>
+
+      <div class="app-content">
+        <header class="topbar">
+          <a class="product-lockup" href="./" aria-label="WinSentinel overview">
+            <span class="product-mark" aria-hidden="true">W</span>
+            <span>
+              <span class="product-name">WINSENTINEL</span>
+              <span class="product-subtitle">LOCAL SECURITY VIEW</span>
+            </span>
+          </a>
+
+          <div class="simulation-badge">
+            <span class="simulation-dot" aria-hidden="true"></span>
+            SIMULATION ONLY
+          </div>
+
+          <div class="topbar-actions">
+            <button class="button button-quiet" id="nextScenario" type="button">
+              <span aria-hidden="true">↻</span>
+              Next signal
+            </button>
+            <button class="button button-reset" id="resetDemo" type="button">
+              Reset
+            </button>
+          </div>
+        </header>
+
+        <main class="main-content">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">LIVE OVERVIEW <span>/</span> MILESTONE 01</p>
+              <h1>Security at a glance</h1>
+              <p class="page-subtitle">One verdict, with the signals behind it.</p>
+            </div>
+            <div class="feed-status">
+              <span class="feed-status-icon" aria-hidden="true"></span>
+              <span>
+                <strong>DEMO FEED</strong>
+                <small>Local simulated data</small>
+              </span>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <section class="panel verdict-panel" aria-labelledby="verdictHeading">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">SYSTEM VERDICT</p>
+                  <h2 id="verdictHeading">Current status</h2>
+                </div>
+                <span class="live-marker"><span></span> PREVIEW</span>
+              </div>
+
+              <div class="verdict-card" id="verdictCard" aria-live="polite">
+                <div class="verdict-icon" id="verdictIcon" aria-hidden="true">✓</div>
+                <div class="verdict-copy">
+                  <p class="verdict-kicker">PRIMARY VERDICT</p>
+                  <h3 id="verdictTitle">Safe</h3>
+                  <p id="verdictDescription">No active demo signals.</p>
+                </div>
+              </div>
+
+              <div class="evidence-row">
+                <span class="evidence-label">Evidence confidence</span>
+                <span class="confidence-badge" id="verdictConfidence" data-confidence="confirmed">CONFIRMED</span>
+              </div>
+
+              <div class="scenario-heading">
+                <span>PREVIEW A SCENARIO</span>
+                <span class="scenario-hint">Select a state</span>
+              </div>
+              <div class="scenario-list" id="scenarioList" role="group" aria-label="Simulated security scenarios"></div>
+            </section>
+
+            <section class="panel scene-panel" aria-labelledby="sceneHeading">
+              <div class="scene-heading">
+                <div>
+                  <p class="eyebrow">THIRD-PERSON VIEW</p>
+                  <h2 id="sceneHeading">Your PC, in context</h2>
+                </div>
+                <span class="scene-label"><span class="scene-label-dot"></span> SIMULATED TRAFFIC</span>
+              </div>
+              <div class="scene-viewport" id="sceneViewport">
+                <canvas id="sentinelScene" aria-label="Animated 3D illustration of a protected PC and simulated network connections"></canvas>
+                <div class="scene-coordinate scene-coordinate-top">DEVICE NODE <span>LOCAL-01</span></div>
+                <div class="scene-coordinate scene-coordinate-bottom">INBOUND CONNECTIONS <span>SIMULATED</span></div>
+                <div class="scene-legend" aria-hidden="true">
+                  <span class="scene-legend-line"></span> network path
+                  <span class="scene-legend-node"></span> external node
+                </div>
+                <div class="scene-fallback" id="sceneFallback" hidden>
+                  This browser could not start the 3D preview. The verdict and scenario controls remain available.
+                </div>
+              </div>
+            </section>
+
+            <section class="panel event-panel" aria-labelledby="eventHeading">
+              <div class="panel-heading event-panel-heading">
+                <div>
+                  <p class="eyebrow">SIGNAL TRACE</p>
+                  <h2 id="eventHeading">Recent demo signals</h2>
+                </div>
+                <span class="event-count" id="eventCount">0 SIGNALS</span>
+              </div>
+              <div class="event-feed" id="eventFeed" aria-live="polite"></div>
+            </section>
+
+            <section class="panel confidence-panel" aria-labelledby="confidenceHeading">
+              <div class="panel-heading compact-heading">
+                <div>
+                  <p class="eyebrow">READING THE SIGNALS</p>
+                  <h2 id="confidenceHeading">Confidence key</h2>
+                </div>
+              </div>
+              <div class="confidence-key">
+                <div><span class="confidence-badge" data-confidence="confirmed">CONFIRMED</span><p>Directly observed event</p></div>
+                <div><span class="confidence-badge" data-confidence="inferred">INFERRED</span><p>Several cues form a pattern</p></div>
+                <div><span class="confidence-badge" data-confidence="suspected">SUSPECTED</span><p>Heuristic; needs corroboration</p></div>
+              </div>
+              <p class="confidence-note">These labels describe example signals only. Nothing is being monitored.</p>
+            </section>
+          </div>
+        </main>
+
+        <footer class="app-footer">
+          <span><span class="footer-lock" aria-hidden="true">⌑</span> Prototype mode — no Windows sensors are connected.</span>
+          <span>WINSENTINEL <span class="footer-separator">/</span> MILESTONE 01</span>
+        </footer>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
