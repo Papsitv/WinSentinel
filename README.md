@@ -42,11 +42,11 @@ When several signals are active, the verdict model selects the highest-priority 
 ## Planned work
 
 1. Review the 3D presentation and demo wording.
-2. Define documented event schemas and add read-only Windows signal collectors. Local sign-in and active Remote Desktop session collectors are implemented; connecting them to the dashboard remains planned.
+2. Define documented event schemas and add read-only Windows signal collectors. Local sign-in and active Remote Desktop session collectors are implemented, with a local-only snapshot import for the development dashboard.
 3. Add file, removable-drive, process, and network observations with explicit confidence and known limitations.
 4. Consider a Windows desktop shell, service hardening, and optional phone alerts after the sensors and verdict rules are validated.
 
-## Milestone 2: local Windows collectors (in progress)
+## Milestone 2: local Windows observations
 
 The read-only collector in `scripts/Get-WinSentinelSignInEvents.ps1` queries local Windows Security events 4624 and 4625 and prints normalized JSON to the PowerShell console. See [`docs/event-schema.md`](docs/event-schema.md) for fields and limitations. It does not change Windows settings, write a file, or send data over the network. Access depends on local Security log permissions and audit policy.
 
@@ -58,7 +58,18 @@ For current RDP sessions, run:
 
     .\scripts\Get-WinSentinelRemoteSessions.ps1
 
-See [docs/active-sessions.md](docs/active-sessions.md). Its client-reported address may differ from the network peer. The sign-in event address, when present, is only the peer value Windows recorded. It cannot identify an attacker or reveal an origin behind a VPN, proxy, NAT, or relay. The GitHub Pages dashboard remains a simulated demo; a later local integration is needed before these records can appear in it.
+See [docs/active-sessions.md](docs/active-sessions.md). Its client-reported address may differ from the network peer. The sign-in event address, when present, is only the peer value Windows recorded. It cannot identify an attacker or reveal an origin behind a VPN, proxy, NAT, or relay.
+
+To create one combined snapshot for the local dashboard, run this in PowerShell 7 from the project folder:
+
+    .\scripts\Get-WinSentinelSnapshot.ps1 -SinceHours 24 -MaxEvents 200 > .\winsentinel-snapshot.json
+    npm run dev
+
+Open the local Vite address, choose **Load local snapshot**, and select `winsentinel-snapshot.json`. The snapshot is created only because you redirected the script's console output to a file. The dashboard accepts it only on `localhost` or `127.0.0.1`, keeps the imported data in the current browser tab's memory, and does not upload or persist it. **Clear local data** removes the imported records from the page; delete the JSON file yourself when you no longer need it. The file is ignored by Git. Do not upload or commit it.
+
+The local observations panel is separate from the simulated verdict and demo controls. It lists network/remote sign-in events (logon types 3, 10, and 12) and RDP sessions reported by Windows without treating an ordinary logon as an attack. Any shown source address is only what Windows or the RDP client reported; it cannot identify an attacker or reveal an origin behind a VPN, proxy, NAT, or relay. GitHub Pages continues to show simulated data and does not accept local snapshots.
+
+See [docs/local-snapshot.md](docs/local-snapshot.md) for the snapshot schema, import boundary, and field limitations.
 
 ## Technology
 

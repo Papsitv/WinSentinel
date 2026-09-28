@@ -61,3 +61,4 @@ desktop.ini
 logs/
 data/
 canary/
+winsentinel-snapshot*.json

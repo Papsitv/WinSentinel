@@ -21,10 +21,35 @@ const elements = {
   sceneDirectionLabel: document.querySelector("#sceneDirectionLabel"),
   guidanceState: document.querySelector("#guidanceState"),
   guidanceList: document.querySelector("#guidanceList"),
+  loadLocalSnapshot: document.querySelector("#loadLocalSnapshot"),
+  localSnapshotInput: document.querySelector("#localSnapshotInput"),
+  localDataPanel: document.querySelector("#localDataPanel"),
+  localDataStatus: document.querySelector("#localDataStatus"),
+  localDataEmpty: document.querySelector("#localDataEmpty"),
+  localDataResults: document.querySelector("#localDataResults"),
+  localDataError: document.querySelector("#localDataError"),
+  clearLocalData: document.querySelector("#clearLocalData"),
+  localWindowValue: document.querySelector("#localWindowValue"),
+  localSignInValue: document.querySelector("#localSignInValue"),
+  localFailureValue: document.querySelector("#localFailureValue"),
+  localSessionValue: document.querySelector("#localSessionValue"),
+  localSignInCount: document.querySelector("#localSignInCount"),
+  localSessionCount: document.querySelector("#localSessionCount"),
+  localSignInList: document.querySelector("#localSignInList"),
+  localSessionList: document.querySelector("#localSessionList"),
+  localImportedAt: document.querySelector("#localImportedAt"),
 };
 
 let activeScenario = "safe";
 let scenarioButtons = new Map();
+let hasLocalSnapshot = false;
+
+const REMOTE_LOGON_TYPES = new Set(["3", "10", "12"]);
+const LOGON_TYPE_LABELS = {
+  "3": "Network logon",
+  "10": "Remote interactive logon",
+  "12": "Cached remote interactive logon",
+};
 
 const scene = createSecurityScene(elements.sceneCanvas, elements.sceneViewport, () => {
   elements.sceneFallback.hidden = false;
@@ -189,7 +214,210 @@ function moveToNextScenario() {
   selectScenario(next.id);
 }
 
+function formatSnapshotTime(value) {
+  if (!value) return "Time not provided";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function createLocalEvidenceRow({ titleText, detailText, timeText, addressLabel, addressText }) {
+  const row = document.createElement("article");
+  row.className = "local-evidence-row";
+
+  const title = document.createElement("div");
+  title.className = "local-evidence-title";
+  const titleCopy = document.createElement("span");
+  titleCopy.textContent = titleText;
+  title.append(titleCopy);
+  if (timeText) {
+    const time = document.createElement("time");
+    time.textContent = timeText;
+    title.append(time);
+  }
+
+  const details = document.createElement("p");
+  details.className = "local-evidence-detail";
+  details.textContent = detailText;
+  row.append(title, details);
+
+  if (addressText) {
+    const address = document.createElement("div");
+    address.className = "local-evidence-address";
+    const label = document.createElement("span");
+    label.textContent = addressLabel;
+    const value = document.createElement("code");
+    value.textContent = addressText;
+    address.append(label, value);
+    row.append(address);
+  }
+
+  return row;
+}
+
+function validateSnapshot(snapshot) {
+  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
+    throw new Error("The file must contain a WinSentinel snapshot object.");
+  }
+  if (snapshot.schemaVersion !== "1.0") {
+    throw new Error("This snapshot schema version is not supported.");
+  }
+  if (!Number.isInteger(snapshot.sinceHours) || snapshot.sinceHours < 1 || snapshot.sinceHours > 720) {
+    throw new Error("The snapshot must include a collection window from 1 to 720 hours.");
+  }
+  if (!Array.isArray(snapshot.signInEvents) || !Array.isArray(snapshot.remoteSessions)) {
+    throw new Error("The snapshot is missing its sign-in event or RDP session array.");
+  }
+  if (snapshot.signInEvents.some((event) =>
+    !event || typeof event !== "object" || event.schemaVersion !== "1.0" ||
+    ![4624, 4625].includes(event.eventId) || !["success", "failure"].includes(event.result)
+  )) {
+    throw new Error("The snapshot contains an invalid sign-in event record.");
+  }
+  if (snapshot.remoteSessions.some((session) =>
+    !session || typeof session !== "object" || session.schemaVersion !== "1.0" ||
+    !Number.isInteger(session.sessionId) || !["Active", "Connected", "Disconnected"].includes(session.state)
+  )) {
+    throw new Error("The snapshot contains an invalid RDP session record.");
+  }
+  return snapshot;
+}
+
+function renderLocalSnapshot(snapshot) {
+  const remoteEvents = snapshot.signInEvents
+    .filter((event) => REMOTE_LOGON_TYPES.has(String(event.logonType)))
+    .sort((left, right) => new Date(right.timeUtc).getTime() - new Date(left.timeUtc).getTime());
+  const failedEvents = remoteEvents.filter((event) => event.result === "failure");
+
+  elements.localWindowValue.textContent = `Last ${snapshot.sinceHours} hours`;
+  elements.localSignInValue.textContent = String(remoteEvents.length);
+  elements.localFailureValue.textContent = String(failedEvents.length);
+  elements.localSessionValue.textContent = String(snapshot.remoteSessions.length);
+  elements.localSignInCount.textContent = `${remoteEvents.length} ${remoteEvents.length === 1 ? "EVENT" : "EVENTS"}`;
+  elements.localSessionCount.textContent = `${snapshot.remoteSessions.length} ${snapshot.remoteSessions.length === 1 ? "SESSION" : "SESSIONS"}`;
+  elements.localSignInList.replaceChildren();
+  elements.localSessionList.replaceChildren();
+
+  if (remoteEvents.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "local-data-empty";
+    empty.textContent = "No matching network or remote logon events were returned for this window.";
+    elements.localSignInList.append(empty);
+  } else {
+    remoteEvents.slice(0, 100).forEach((event) => {
+      const account = [event.accountDomain, event.accountName].filter(Boolean).join("\\");
+      const details = [
+        LOGON_TYPE_LABELS[String(event.logonType)] ?? `Logon type ${event.logonType ?? "unknown"}`,
+        `Windows event ${event.eventId}`,
+        account ? `Account ${account}` : null,
+      ].filter(Boolean).join(" · ");
+      elements.localSignInList.append(createLocalEvidenceRow({
+        titleText: event.result === "success" ? "Successful sign-in event" : "Failed sign-in event",
+        detailText: details,
+        timeText: formatSnapshotTime(event.timeUtc),
+        addressLabel: "Source address reported by Windows:",
+        addressText: event.sourceAddress || "Not recorded",
+      }));
+    });
+    if (remoteEvents.length > 100) {
+      const more = document.createElement("p");
+      more.className = "local-data-note";
+      more.textContent = `Showing the 100 most recent of ${remoteEvents.length} matching events.`;
+      elements.localSignInList.append(more);
+    }
+  }
+
+  if (snapshot.remoteSessions.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "local-data-empty";
+    empty.textContent = "No RDP sessions were returned by this query.";
+    elements.localSessionList.append(empty);
+  } else {
+    snapshot.remoteSessions.forEach((session) => {
+      const account = [session.domainName, session.userName].filter(Boolean).join("\\");
+      const details = [
+        `Session ID ${session.sessionId}`,
+        account ? `Account ${account}` : null,
+        session.sessionName ? `Session ${session.sessionName}` : null,
+      ].filter(Boolean).join(" · ");
+      elements.localSessionList.append(createLocalEvidenceRow({
+        titleText: `RDP session · ${session.state}`,
+        detailText: details,
+        addressLabel: "Address reported by the RDP client:",
+        addressText: session.clientReportedAddress || "Not available",
+      }));
+    });
+  }
+
+  elements.localImportedAt.textContent =
+    `Snapshot collected ${formatSnapshotTime(snapshot.collectedAtUtc)} · ${snapshot.signInEvents.length} total sign-in events queried.`;
+  elements.localDataEmpty.hidden = true;
+  elements.localDataResults.hidden = false;
+  elements.localDataStatus.textContent = "SNAPSHOT LOADED · IN THIS TAB";
+  elements.localDataError.hidden = true;
+  elements.clearLocalData.disabled = false;
+  hasLocalSnapshot = true;
+}
+
+function clearLocalSnapshot() {
+  elements.localSnapshotInput.value = "";
+  elements.localSignInList.replaceChildren();
+  elements.localSessionList.replaceChildren();
+  elements.localWindowValue.textContent = "—";
+  elements.localSignInValue.textContent = "—";
+  elements.localFailureValue.textContent = "—";
+  elements.localSessionValue.textContent = "—";
+  elements.localSignInCount.textContent = "0 EVENTS";
+  elements.localSessionCount.textContent = "0 SESSIONS";
+  elements.localImportedAt.textContent = "";
+  elements.localDataResults.hidden = true;
+  elements.localDataEmpty.hidden = false;
+  elements.localDataError.hidden = true;
+  elements.localDataStatus.textContent = "NO SNAPSHOT LOADED";
+  elements.clearLocalData.disabled = true;
+  hasLocalSnapshot = false;
+}
+
+async function importLocalSnapshot(file) {
+  elements.localDataError.hidden = true;
+  try {
+    if (file.size > 20 * 1024 * 1024) {
+      throw new Error("The snapshot file is larger than 20 MB.");
+    }
+    const snapshot = validateSnapshot(JSON.parse(await file.text()));
+    renderLocalSnapshot(snapshot);
+  } catch (error) {
+    elements.localDataError.textContent = error instanceof Error
+      ? error.message
+      : "The selected file could not be read as a WinSentinel snapshot.";
+    elements.localDataError.hidden = false;
+    if (hasLocalSnapshot) {
+      elements.localDataStatus.textContent = "IMPORT FAILED · PREVIOUS SNAPSHOT RETAINED";
+    }
+  } finally {
+    elements.localSnapshotInput.value = "";
+  }
+}
+
+function setupLocalSnapshotImport() {
+  const localViewer = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
+  if (!localViewer) return;
+
+  elements.localDataPanel.hidden = false;
+  elements.loadLocalSnapshot.hidden = false;
+  elements.loadLocalSnapshot.addEventListener("click", () => elements.localSnapshotInput.click());
+  elements.localSnapshotInput.addEventListener("change", () => {
+    const file = elements.localSnapshotInput.files?.[0];
+    if (file) importLocalSnapshot(file);
+  });
+  elements.clearLocalData.addEventListener("click", clearLocalSnapshot);
+}
+
 createScenarioControls();
+setupLocalSnapshotImport();
 elements.nextScenario.addEventListener("click", moveToNextScenario);
 elements.resetDemo.addEventListener("click", () => selectScenario("safe"));
 selectScenario("safe");

@@ -38,6 +38,10 @@
           </div>
 
           <div class="topbar-actions">
+            <button class="button button-local" id="loadLocalSnapshot" type="button" hidden>
+              <span aria-hidden="true">↥</span>
+              Load local snapshot
+            </button>
             <button class="button button-quiet" id="nextScenario" type="button">
               <span aria-hidden="true">↻</span>
               Next signal
@@ -47,6 +51,8 @@
             </button>
           </div>
         </header>
+
+        <input id="localSnapshotInput" class="visually-hidden" type="file" accept="application/json,.json" aria-label="Choose a WinSentinel local snapshot JSON file" tabindex="-1" />
 
         <main class="main-content">
           <div class="page-heading">
@@ -63,6 +69,55 @@
               </span>
             </div>
           </div>
+
+          <section class="panel local-data-panel" id="localDataPanel" aria-labelledby="localDataHeading" hidden>
+            <div class="local-data-header">
+              <div>
+                <p class="eyebrow">LOCAL SNAPSHOT · SEPARATE FROM DEMO</p>
+                <h2 id="localDataHeading">Windows observations</h2>
+                <p class="local-data-subtitle">The demo verdict and scenario controls below remain simulated.</p>
+              </div>
+              <div class="local-data-actions">
+                <span class="local-data-status" id="localDataStatus" role="status">NO SNAPSHOT LOADED</span>
+                <button class="button button-reset" id="clearLocalData" type="button" disabled>Clear local data</button>
+              </div>
+            </div>
+
+            <div class="local-data-empty" id="localDataEmpty">
+              <strong>No local snapshot loaded</strong>
+              <span>Run the combined PowerShell collector, then choose <b>Load local snapshot</b>.</span>
+            </div>
+
+            <div id="localDataResults" hidden>
+              <div class="local-summary-grid" aria-label="Snapshot summary">
+                <div class="local-summary-item"><span>COLLECTION WINDOW</span><strong id="localWindowValue">—</strong></div>
+                <div class="local-summary-item"><span>NETWORK / REMOTE SIGN-INS</span><strong id="localSignInValue">—</strong></div>
+                <div class="local-summary-item"><span>FAILED SIGN-INS</span><strong id="localFailureValue">—</strong></div>
+                <div class="local-summary-item"><span>RDP SESSIONS RETURNED</span><strong id="localSessionValue">—</strong></div>
+              </div>
+
+              <div class="local-evidence-columns">
+                <section class="local-evidence-group" aria-labelledby="localSignInHeading">
+                  <div class="local-evidence-heading">
+                    <h3 id="localSignInHeading">Network and remote sign-in events</h3>
+                    <span id="localSignInCount">0 EVENTS</span>
+                  </div>
+                  <div class="local-evidence-list" id="localSignInList" aria-live="polite"></div>
+                </section>
+                <section class="local-evidence-group" aria-labelledby="localSessionHeading">
+                  <div class="local-evidence-heading">
+                    <h3 id="localSessionHeading">RDP sessions reported by Windows</h3>
+                    <span id="localSessionCount">0 SESSIONS</span>
+                  </div>
+                  <div class="local-evidence-list" id="localSessionList" aria-live="polite"></div>
+                </section>
+              </div>
+              <p class="local-data-note">These are local observations for the selected collection window. An empty result means no matching records were returned; it does not prove that the device is threat-free. Addresses are only values reported by Windows or the RDP client and cannot identify an attacker or reveal an origin behind VPN, proxy, NAT, or gateway routing.</p>
+              <p class="local-data-time" id="localImportedAt"></p>
+            </div>
+
+            <p class="local-data-error" id="localDataError" role="alert" hidden></p>
+          </section>
 
           <div class="dashboard-grid">
             <section class="panel verdict-panel" aria-labelledby="verdictHeading">
@@ -143,7 +198,7 @@
         </main>
 
         <footer class="app-footer">
-          <span><span class="footer-lock" aria-hidden="true">⌑</span> Prototype mode — no Windows sensors are connected.</span>
+          <span><span class="footer-lock" aria-hidden="true">⌑</span> Manual local import only — no background Windows monitoring.</span>
           <span>WINSENTINEL <span class="footer-separator">/</span> MILESTONE 01</span>
         </footer>
       </div>
