@@ -4,9 +4,9 @@ WinSentinel is a Windows security monitoring concept that presents system signal
 
 ## Current milestone
 
-Milestone 1 is a browser prototype. It contains a Three.js tower scene, a verdict priority model, seven selectable demo scenarios, a signal feed, and evidence confidence labels.
+Milestone 1 is a browser prototype. It contains a Three.js tower scene with state-specific motion, a verdict priority model, seven selectable demo scenarios, a signal feed, evidence confidence labels, and state-specific security suggestions.
 
-Every signal in this prototype is simulated. It does not read Windows event logs, inspect processes or files, access a camera or microphone, detect real attacks, or send alerts. The confidence label describes the example signal only; it is not an assessment of your computer.
+Every signal in this prototype is simulated. It does not read Windows event logs, inspect processes or files, access a camera or microphone, detect real attacks, or send alerts. The remote sign-in examples use TEST-NET addresses reserved for documentation under [RFC 5737](https://www.rfc-editor.org/rfc/rfc5737.html); they are not observed IP addresses and cannot identify an attacker or VPN endpoint. The confidence label describes the example signal only; it is not an assessment of your computer.
 
 ## Run locally
 
